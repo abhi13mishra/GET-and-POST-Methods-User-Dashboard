@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Dashboard</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 500px; margin: auto; }
+    input { display: block; margin: 10px 0; padding: 8px; width: 100%; }
+    button { padding: 10px; width: 100%; background-color: #28a745; color: white; border: none; }
+    ul { padding: 0; list-style-type: none; }
+    li { background: #f1f1f1; margin: 5px 0; padding: 10px; border-radius: 5px; }
+    #message { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>User Dashboard</h2>
+
+  <input type="text" id="name" placeholder="Name" />
+  <input type="email" id="email" placeholder="Email" />
+  <button onclick="addUser()">Add User</button>
+
+  <div id="message"></div>
+
+  <h3>All Users</h3>
+  <ul id="userList"></ul>
+
+  <script>
+    const apiUrl = "https://mockapi.io/users"; // Replace with actual MockAPI URL
+
+    let users = [];
+
+    function fetchUsers() {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          users = data;
+          showUsers();
+        })
+        .catch(() => {
+          document.getElementById("message").textContent = "Failed to fetch users.";
+        });
+    }
+
+    function showUsers() {
+      const list = document.getElementById("userList");
+      list.innerHTML = "";
+      users.forEach(user => {
+        const li = document.createElement("li");
+        li.textContent = `${user.name} - ${user.email}`;
+        list.appendChild(li);
+      });
+    }
+
+    function addUser() {
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const message = document.getElementById("message");
+      message.style.color = "red";
+      message.textContent = "";
+
+      if (!name || !email) {
+        message.textContent = "Please fill all fields.";
+        return;
+      }
+
+      const emailExists = users.some(user => user.email === email);
+      if (emailExists) {
+        message.textContent = "Email already exists.";
+        return;
+      }
+
+      const payload = { name, email };
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(newUser => {
+        users.push(newUser);
+        showUsers();
+        message.style.color = "green";
+        message.textContent = "User added successfully.";
+        document.getElementById("name").value = "";
+        document.getElementById("email").value = "";
+      })
+      .catch(() => {
+        message.textContent = "Failed to add user.";
+      });
+    }
+
+    fetchUsers();
+  </script>
+
+</body>
+</html>
